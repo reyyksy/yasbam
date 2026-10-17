@@ -4,18 +4,35 @@
  * =============================================================================
  * Konfigurasi Master Data Arsip Acara (EVENTS)
  * -----------------------------------------------------------------------------
- * PANDUAN MENAMBAHKAN ACARA BARU:
- * 1. Salin satu blok objek acara di bawah ini.
- * 2. Ubah `id`, `title`, `date` (format YYYY-MM-DD), `description`, dan `albums`.
- * 3. Kategori yang belum memiliki link Google Photos cukup diisi string kosong `''`.
- *    Sistem otomatis menyembunyikan tombolnya di halaman detail.
- * 4. Urutan tampilan otomatis dihitung berdasarkan tanggal terbaru (descending).
- *    3 acara teratas otomatis tampil di "Arsip Terbaru".
- *    Semua acara tanpa terkecuali dapat dilihat di tab/halaman "Semua Arsip Acara".
+ * PANDUAN PENGELOLAAN / MENAMBAH / MENGUBAH ACARA:
+ * 1. Setiap acara memiliki:
+ *    - `id`         : ID unik huruf kecil/angka (contoh: 'perpisahan-2026')
+ *    - `title`      : Judul nama acara
+ *    - `date`       : Tanggal format 'YYYY-MM-DD' (menentukan urutan kalender terbaru)
+ *    - `description`: Keterangan ringkas acara
+ *    - `albums`     : Objek tautan album Google Photos:
+ *        - `frame`    : Link Google Photos foto frame
+ *        - `original` : Link Google Photos foto asli
+ *        - `unclaimed`: Link Google Photos foto belum diambil
+ *
+ * CARA MENGHILANGKAN TOMBOL KATEGORI YANG BELUM ADA LINK-NYA:
+ * - Cukup isi dengan string kosong `''` ATAU hapus barisnya.
+ *   Contoh: `unclaimed: ''` -> Tombol Unclaimed otomatis TIDAK MUNCUL di website!
  * =============================================================================
  */
 
 const EVENTS = [
+  {
+    id: 'pramuka-lkkp-2026',
+    title: 'Acara Lomba Pramuka LKKP',
+    date: '2026-10-17',
+    description: 'Sesi foto photobooth peserta lomba pramuka dan para pembina gugus depan SMK YASBAM.',
+    albums: {
+      frame: 'https://photos.app.goo.gl/8iMcSdWG46wD2qX26',
+      original: 'https://photos.app.goo.gl/zdg938AuwxseLjvC7',
+      unclaimed: 'https://photos.app.goo.gl/f4MMyhuKi7GtzYB6A'
+    }
+  },
   {
     id: 'perpisahan-yasbam-2026',
     title: 'Perpisahan Siswa SMK YASBAM Tahun Pelajaran 2025/2026',
@@ -24,23 +41,13 @@ const EVENTS = [
     albums: {
       frame: 'https://photos.app.goo.gl/FCh7VjUT4iimDLWv5',
       original: 'https://photos.app.goo.gl/tF99rKhdWnQ6izgK9',
-    }
-  },
-  {
-    id: 'pramuka-lkkp-2026',
-    title: 'Acara Lomba Pramuka LKKP',
-    date: '2026-10-17',
-    description: 'Sesi foto peserta lomba dan pembina',
-    albums: {
-      frame: 'https://photos.app.goo.gl/8iMcSdWG46wD2qX26',
-      original: 'https://photos.app.goo.gl/example-hariguru2025-original',
-      unclaimed: 'https://photos.app.goo.gl/f4MMyhuKi7GtzYB6A'
+      unclaimed: '' // Kosongkan atau hapus baris ini, tombol otomatis hilang
     }
   }
 ];
 
 // =============================================================================
-// VALIDASI & PENGURUTAN ACARA
+// VALIDASI & PENGURUTAN ACARA BERDASARKAN TANGGAL KALENDER TERBARU
 // =============================================================================
 
 function getValidatedEvents() {
@@ -78,7 +85,7 @@ function getValidatedEvents() {
     });
   });
 
-  // Urutkan kalender descending (terbaru di atas)
+  // Urutkan tanggal kalender descending (terbaru di atas)
   return list.sort((a, b) => b.timestamp - a.timestamp);
 }
 
@@ -120,539 +127,397 @@ function escapeHTML(str) {
 
 function getAvailableAlbums(albums) {
   const result = [];
-  if (albums.frame) result.push({ key: 'frame', label: 'Frame' });
-  if (albums.original) result.push({ key: 'original', label: 'Original' });
-  if (albums.unclaimed) result.push({ key: 'unclaimed', label: 'Unclaimed' });
+  if (albums.frame) result.push({ key: 'frame', label: 'Frame', url: albums.frame });
+  if (albums.original) result.push({ key: 'original', label: 'Original', url: albums.original });
+  if (albums.unclaimed) result.push({ key: 'unclaimed', label: 'Unclaimed', url: albums.unclaimed });
   return result;
 }
 
 // =============================================================================
-// KOMPONEN RENDER (CARD & DIRECTORY ITEM)
+// RENDER KARTU ARSIP TERBARU (3 ACARA TERBARU)
 // =============================================================================
 
-/**
- * Render Kartu Acara (Beranda & Pencarian)
- */
-function createEventCard(event, isRecent = false) {
+function createRecentCard(event) {
   const card = document.createElement('article');
-  card.className = 'event-card';
-  card.setAttribute('role', 'button');
-  card.setAttribute('tabindex', '0');
-  card.setAttribute('aria-label', `Buka arsip ${event.title}`);
-
   const activeAlbums = getAvailableAlbums(event.albums);
-  const albumCountLabel = activeAlbums.length > 0 
-    ? `${activeAlbums.length} Kategori Album` 
-    : 'Album Segera Hadir';
+  const categoriesStr = activeAlbums.map(a => a.key).join(' ');
+
+  card.className = 'album-card';
+  card.dataset.category = categoriesStr;
+  card.dataset.title = `${event.title} ${event.description} ${event.date}`.toLowerCase();
+
+  // Badges di header kartu
+  const badgesHtml = activeAlbums.map(a => `<span class="album-card-badge badge-${a.key}">${a.label}</span>`).join('');
+  const countLabel = activeAlbums.length > 0 ? `${activeAlbums.length} Kategori Album` : 'Album Segera';
+
+  // Tombol aksi langsung ke Google Photos tanpa preview
+  const buttonsHtml = activeAlbums.map(a => {
+    let btnClass = 'btn-card-outline';
+    if (a.key === 'frame') btnClass = 'btn-card-primary';
+    else if (a.key === 'original') btnClass = 'btn-card-green';
+    else if (a.key === 'unclaimed') btnClass = 'btn-card-amber';
+
+    return `
+      <a href="${escapeHTML(a.url)}" class="btn-card ${btnClass}" target="_blank" rel="noopener noreferrer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+        </svg>
+        <span>Buka ${a.label}</span>
+      </a>
+    `;
+  }).join('');
 
   card.innerHTML = `
-    <div class="event-card-top">
-      <div class="event-card-header-meta">
-        <span class="meta-date-chip">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
+    <div class="album-card-body">
+      <div class="album-card-meta">
+        <span class="album-card-date">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>
           </svg>
           <time datetime="${event.date}">${formatDateIndo(event.date)}</time>
         </span>
-        ${isRecent ? '<span class="badge-tag badge-tag-recent">Terbaru</span>' : ''}
+        <span class="album-card-count">${countLabel}</span>
       </div>
-      <h3 class="event-card-title">${escapeHTML(event.title)}</h3>
-    </div>
-    <p class="event-card-desc">${escapeHTML(event.description)}</p>
-    <div class="event-card-bottom">
-      <span class="album-count-tag">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-          <circle cx="12" cy="13" r="4"></circle>
-        </svg>
-        ${albumCountLabel}
-      </span>
-      <span class="action-trigger-label">
-        Buka Arsip
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </span>
+      <div class="album-card-badges-row" style="display:flex; gap:6px; margin-bottom:10px;">
+        ${badgesHtml}
+      </div>
+      <h3 class="album-card-title">${escapeHTML(event.title)}</h3>
+      <p class="album-card-desc">${escapeHTML(event.description)}</p>
+      <div class="album-card-actions">
+        ${buttonsHtml || '<span style="font-size:0.8rem;color:#94a3b8;">Tautan album sedang dipersiapkan</span>'}
+      </div>
     </div>
   `;
-
-  const onOpen = () => navigateToEvent(event.id);
-  card.addEventListener('click', onOpen);
-  card.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onOpen();
-    }
-  });
 
   return card;
 }
 
 /**
- * Render Kartu Direktori (Semua Arsip) — Mobile-First Friendly
+ * Render Baris Direktori untuk Bagian "Semua Arsip Acara"
  */
-function createDirectoryItem(event) {
-  const card = document.createElement('div');
-  card.className = 'directory-card';
-  card.setAttribute('role', 'button');
-  card.setAttribute('tabindex', '0');
-  card.setAttribute('aria-label', `Lihat arsip ${event.title}`);
-
+function createAllEventRow(event) {
+  const row = document.createElement('div');
+  row.className = 'all-event-row';
   const activeAlbums = getAvailableAlbums(event.albums);
-  const chipsHtml = activeAlbums.length > 0
-    ? activeAlbums.map(a => `<span class="chip-badge chip-${a.key}">${a.label}</span>`).join('')
-    : '<span class="chip-badge chip-none">Segera</span>';
 
-  card.innerHTML = `
-    <div class="dir-card-date-row">
-      <time datetime="${event.date}" class="dir-date-text">${formatDateIndo(event.date)}</time>
-      <span class="dir-date-code">${event.date}</span>
+  const chipsHtml = activeAlbums.length > 0
+    ? activeAlbums.map(a => `<span class="album-card-badge badge-${a.key}">${a.label}</span>`).join('')
+    : '<span style="font-size:0.75rem;color:#94a3b8;">Belum ada album</span>';
+
+  const buttonsHtml = activeAlbums.map(a => {
+    let btnClass = 'btn-card-outline';
+    if (a.key === 'frame') btnClass = 'btn-card-primary';
+    else if (a.key === 'original') btnClass = 'btn-card-green';
+    else if (a.key === 'unclaimed') btnClass = 'btn-card-amber';
+
+    return `
+      <a href="${escapeHTML(a.url)}" class="btn-card ${btnClass}" target="_blank" rel="noopener noreferrer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+        </svg>
+        <span>${a.label}</span>
+      </a>
+    `;
+  }).join('');
+
+  row.innerHTML = `
+    <div class="all-event-date-col">
+      <span class="all-event-date-formatted">${formatDateIndo(event.date)}</span>
+      <span class="all-event-date-iso">${event.date}</span>
     </div>
-    <div class="dir-card-main-col">
-      <h3 class="dir-card-heading">${escapeHTML(event.title)}</h3>
-      <p class="dir-card-details">${escapeHTML(event.description)}</p>
-      <div class="dir-card-chips">
+    <div class="all-event-main-col">
+      <h3 class="all-event-title">${escapeHTML(event.title)}</h3>
+      <p class="all-event-desc">${escapeHTML(event.description)}</p>
+      <div class="all-event-chips">
         ${chipsHtml}
       </div>
     </div>
-    <div class="dir-card-footer">
-      <span class="btn-open-dir">
-        <span>Buka Arsip</span>
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </span>
+    <div class="all-event-actions-col">
+      ${buttonsHtml || '<span style="font-size:0.8rem;color:#94a3b8;">Segera</span>'}
     </div>
   `;
 
-  const onOpen = () => navigateToEvent(event.id);
-  card.addEventListener('click', onOpen);
-  card.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onOpen();
-    }
-  });
-
-  return card;
+  return row;
 }
 
 // =============================================================================
-// NAVIGASI VIEW & STATE (Beranda, Semua Arsip, Detail Acara)
+// INISIALISASI & INTERAKSI
 // =============================================================================
 
-function showView(viewName) {
-  const mainView = document.getElementById('mainView');
-  const allEventsView = document.getElementById('allEventsView');
-  const detailView = document.getElementById('detailView');
+(function() {
+  'use strict';
 
-  const navHomeBtn = document.getElementById('navHomeBtn');
-  const navAllEventsBtn = document.getElementById('navAllEventsBtn');
+  // 1. Render Tepat 3 Acara Terbaru pada Bagian #arsip
+  function renderRecentSection() {
+    const grid = document.getElementById('albumGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
 
-  // Sembunyikan semua tampilan
-  if (mainView) mainView.hidden = true;
-  if (allEventsView) allEventsView.hidden = true;
-  if (detailView) detailView.hidden = true;
-
-  // Reset tab aktif
-  if (navHomeBtn) navHomeBtn.classList.remove('active');
-  if (navAllEventsBtn) navAllEventsBtn.classList.remove('active');
-
-  if (viewName === 'all') {
-    if (allEventsView) allEventsView.hidden = false;
-    if (navAllEventsBtn) navAllEventsBtn.classList.add('active');
-    renderAllEventsDirectory();
-  } else if (viewName === 'detail') {
-    if (detailView) detailView.hidden = false;
-  } else {
-    // Default: 'home'
-    if (mainView) mainView.hidden = false;
-    if (navHomeBtn) navHomeBtn.classList.add('active');
-    renderRecentEvents();
-  }
-
-  window.scrollTo({ top: 0, behavior: 'instant' });
-}
-
-function navigateToHome() {
-  window.location.hash = '';
-  showView('home');
-}
-
-function navigateToAllEvents() {
-  window.location.hash = 'all-events';
-  showView('all');
-}
-
-function navigateToEvent(eventId) {
-  window.location.hash = `event=${encodeURIComponent(eventId)}`;
-  renderEventDetail(eventId);
-}
-
-// =============================================================================
-// RENDER HALAMAN
-// =============================================================================
-
-/**
- * Render 3 Acara Terbaru
- */
-function renderRecentEvents() {
-  const container = document.getElementById('recentEventsList');
-  if (!container) return;
-
-  container.innerHTML = '';
-  const topThree = SORTED_EVENTS.slice(0, 3);
-
-  if (topThree.length === 0) {
-    container.innerHTML = '<div class="empty-notice-card"><p>Belum ada arsip acara.</p></div>';
-    return;
-  }
-
-  topThree.forEach((event) => {
-    container.appendChild(createEventCard(event, true));
-  });
-}
-
-/**
- * Render Halaman Direktori Semua Acara dengan Filter Tahun
- */
-let currentYearFilter = 'all';
-
-function renderAllEventsDirectory() {
-  const container = document.getElementById('directoryList');
-  const countBadge = document.getElementById('totalEventsBadge');
-  const yearFilterContainer = document.getElementById('yearFilterButtons');
-  if (!container) return;
-
-  // Bangun tombol tahun jika belum ada
-  const years = Array.from(new Set(SORTED_EVENTS.map(e => e.year))).filter(Boolean);
-
-  if (yearFilterContainer && yearFilterContainer.children.length === 0) {
-    const allBtn = document.createElement('button');
-    allBtn.type = 'button';
-    allBtn.className = 'filter-btn active';
-    allBtn.textContent = 'Semua Tahun';
-    allBtn.addEventListener('click', () => {
-      setYearFilter('all', allBtn);
+    // Ambil tepat 3 acara terbaru
+    const topThree = SORTED_EVENTS.slice(0, 3);
+    topThree.forEach(event => {
+      grid.appendChild(createRecentCard(event));
     });
-    yearFilterContainer.appendChild(allBtn);
+  }
 
-    years.forEach(yr => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'filter-btn';
-      btn.textContent = `Tahun ${yr}`;
-      btn.addEventListener('click', () => {
-        setYearFilter(yr, btn);
+  // 2. Render Bagian Semua Arsip Acara dengan Filter Tahun
+  let currentYear = 'all';
+
+  function renderAllEventsSection() {
+    const listContainer = document.getElementById('allEventsList');
+    const badge = document.getElementById('allEventsCountBadge');
+    const yearContainer = document.getElementById('yearFilterTabs');
+    if (!listContainer) return;
+
+    const years = Array.from(new Set(SORTED_EVENTS.map(e => e.year))).filter(Boolean);
+
+    // Bangun filter tahun jika belum ada
+    if (yearContainer && yearContainer.children.length === 0) {
+      const allBtn = document.createElement('button');
+      allBtn.type = 'button';
+      allBtn.className = 'year-chip active';
+      allBtn.textContent = 'Semua Tahun';
+      allBtn.addEventListener('click', () => {
+        currentYear = 'all';
+        updateYearTabs(allBtn);
+        renderAllEventsSection();
       });
-      yearFilterContainer.appendChild(btn);
-    });
-  }
+      yearContainer.appendChild(allBtn);
 
-  // Filter berdasarkan tahun
-  const filtered = currentYearFilter === 'all'
-    ? SORTED_EVENTS
-    : SORTED_EVENTS.filter(e => e.year === currentYearFilter);
-
-  if (countBadge) {
-    countBadge.textContent = `${filtered.length} Acara`;
-  }
-
-  container.innerHTML = '';
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty-notice-card"><p>Tidak ada arsip untuk tahun yang dipilih.</p></div>';
-    return;
-  }
-
-  filtered.forEach(event => {
-    container.appendChild(createDirectoryItem(event));
-  });
-}
-
-function setYearFilter(year, activeBtn) {
-  currentYearFilter = year;
-  const yearFilterContainer = document.getElementById('yearFilterButtons');
-  if (yearFilterContainer) {
-    Array.from(yearFilterContainer.children).forEach(btn => btn.classList.remove('active'));
-  }
-  if (activeBtn) activeBtn.classList.add('active');
-  renderAllEventsDirectory();
-}
-
-/**
- * Render Detail Acara
- */
-function renderEventDetail(eventId) {
-  const event = SORTED_EVENTS.find(e => e.id === eventId);
-  if (!event) {
-    console.error(`Acara '${eventId}' tidak ditemukan.`);
-    navigateToHome();
-    return;
-  }
-
-  showView('detail');
-
-  const titleEl = document.getElementById('detailTitle');
-  const dateEl = document.getElementById('detailDate');
-  const descEl = document.getElementById('detailDesc');
-  const albumsContainer = document.getElementById('detailAlbumsList');
-  const emptyAlbumsNotice = document.getElementById('emptyAlbumsNotice');
-
-  if (titleEl) titleEl.textContent = event.title;
-  if (dateEl) {
-    dateEl.textContent = formatDateIndo(event.date);
-    dateEl.setAttribute('datetime', event.date);
-  }
-  if (descEl) descEl.textContent = event.description;
-
-  if (albumsContainer) {
-    albumsContainer.innerHTML = '';
-    let renderedCount = 0;
-
-    // 1. FRAME
-    if (event.albums.frame) {
-      renderedCount++;
-      albumsContainer.appendChild(createAlbumActionCard({
-        category: 'frame',
-        title: 'Foto Frame Resmi',
-        badge: 'Edited with Frame',
-        desc: 'Softfile hasil foto photobooth yang telah dilengkapi bingkai grafis resmi acara siap dibagikan.',
-        url: event.albums.frame,
-        btnLabel: 'Buka Album Frame'
-      }));
+      years.forEach(yr => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'year-chip';
+        btn.textContent = `Tahun ${yr}`;
+        btn.addEventListener('click', () => {
+          currentYear = yr;
+          updateYearTabs(btn);
+          renderAllEventsSection();
+        });
+        yearContainer.appendChild(btn);
+      });
     }
 
-    // 2. ORIGINAL
-    if (event.albums.original) {
-      renderedCount++;
-      albumsContainer.appendChild(createAlbumActionCard({
-        category: 'original',
-        title: 'Foto Original (Asli)',
-        badge: 'High-Res Unedited',
-        desc: 'File jepretan asli resolusi penuh langsung dari kamera stan tanpa modifikasi bingkai.',
-        url: event.albums.original,
-        btnLabel: 'Buka Album Original'
-      }));
+    const filtered = currentYear === 'all'
+      ? SORTED_EVENTS
+      : SORTED_EVENTS.filter(e => e.year === currentYear);
+
+    if (badge) {
+      badge.textContent = `${filtered.length} Acara`;
     }
 
-    // 3. UNCLAIMED
-    if (event.albums.unclaimed) {
-      renderedCount++;
-      albumsContainer.appendChild(createAlbumActionCard({
-        category: 'unclaimed',
-        title: 'Foto Belum Terklaim',
-        badge: 'Unclaimed Photos',
-        desc: 'Kumpulan softfile yang belum sempat dicetak atau belum diambil pemiliknya selama acara berlangsung.',
-        url: event.albums.unclaimed,
-        btnLabel: 'Buka Album Unclaimed'
-      }));
+    listContainer.innerHTML = '';
+    filtered.forEach(event => {
+      listContainer.appendChild(createAllEventRow(event));
+    });
+  }
+
+  function updateYearTabs(activeBtn) {
+    const yearContainer = document.getElementById('yearFilterTabs');
+    if (yearContainer) {
+      Array.from(yearContainer.children).forEach(btn => btn.classList.remove('active'));
+    }
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  // 3. Navbar scroll & active link
+  const navbar = document.getElementById('navbar');
+  const backToTop = document.getElementById('backToTop');
+
+  function handleScroll() {
+    const scrollY = window.scrollY;
+    if (navbar) {
+      if (scrollY > 50) navbar.classList.add('scrolled');
+      else navbar.classList.remove('scrolled');
     }
 
-    if (emptyAlbumsNotice) {
-      emptyAlbumsNotice.hidden = renderedCount > 0;
+    if (backToTop) {
+      if (scrollY > 500) backToTop.classList.add('visible');
+      else backToTop.classList.remove('visible');
+    }
+
+    // Active nav link highlight
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    let currentId = '';
+
+    sections.forEach(sec => {
+      const secTop = sec.offsetTop - 120;
+      if (window.scrollY >= secTop) {
+        currentId = sec.getAttribute('id');
+      }
+    });
+
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + currentId) {
+        link.classList.add('active');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
+
+  if (backToTop) {
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  // 4. Mobile Menu Toggle
+  const navToggle = document.getElementById('navToggle');
+  const navMenu = document.getElementById('navMenu');
+
+  if (navToggle && navMenu) {
+    navToggle.addEventListener('click', () => {
+      navToggle.classList.toggle('active');
+      navMenu.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        navToggle.classList.remove('active');
+        navMenu.classList.remove('active');
+      });
+    });
+  }
+
+  // 5. Fitur Pencarian Dinamis (Mencari di Seluruh Arsip Acara)
+  const searchInput = document.getElementById('searchInput');
+  const searchClear = document.getElementById('searchClear');
+  const searchChips = document.querySelectorAll('.search-chip');
+  const emptyState = document.getElementById('emptyState');
+  const resetFilterBtn = document.getElementById('resetFilter');
+
+  let currentCategoryFilter = 'all';
+
+  function filterAlbums() {
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const grid = document.getElementById('albumGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    let matches = [];
+
+    // Jika sedang ada pencarian, cari dari SEMUA arsip yang cocok!
+    const pool = searchTerm !== '' ? SORTED_EVENTS : SORTED_EVENTS.slice(0, 3);
+
+    pool.forEach(event => {
+      const activeAlbums = getAvailableAlbums(event.albums);
+      const categoriesStr = activeAlbums.map(a => a.key).join(' ');
+      const searchTarget = `${event.title} ${event.description} ${event.date}`.toLowerCase();
+
+      const matchesSearch = searchTerm === '' || searchTarget.includes(searchTerm);
+      const matchesCategory = currentCategoryFilter === 'all' || categoriesStr.includes(currentCategoryFilter);
+
+      if (matchesSearch && matchesCategory) {
+        matches.push(event);
+      }
+    });
+
+    if (matches.length > 0) {
+      if (emptyState) emptyState.style.display = 'none';
+      matches.forEach(event => {
+        grid.appendChild(createRecentCard(event));
+      });
+    } else {
+      if (emptyState) emptyState.style.display = 'block';
+    }
+
+    if (searchClear) {
+      searchClear.style.display = searchTerm !== '' ? 'flex' : 'none';
     }
   }
-}
-
-/**
- * Membuat Kartu Aksi Album Foto pada Detail Acara
- */
-function createAlbumActionCard({ category, title, badge, desc, url, btnLabel }) {
-  const card = document.createElement('div');
-  card.className = `album-selection-card card-cat-${category}`;
-
-  let iconSvg = '';
-  if (category === 'frame') {
-    iconSvg = `
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        <rect x="7" y="7" width="10" height="10"></rect>
-      </svg>`;
-  } else if (category === 'original') {
-    iconSvg = `
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-        <circle cx="12" cy="13" r="4"></circle>
-      </svg>`;
-  } else {
-    iconSvg = `
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>`;
-  }
-
-  card.innerHTML = `
-    <div class="album-card-header">
-      <div class="album-icon-circle">${iconSvg}</div>
-      <div class="album-header-text">
-        <span class="chip-badge chip-${category}">${badge}</span>
-        <h4 class="album-category-name">${title}</h4>
-      </div>
-    </div>
-    <p class="album-desc-note">${desc}</p>
-    <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" class="btn-album-touch">
-      <span>${btnLabel}</span>
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-        <polyline points="15 3 21 3 21 9"></polyline>
-        <line x1="10" y1="14" x2="21" y2="3"></line>
-      </svg>
-    </a>
-  `;
-
-  return card;
-}
-
-// =============================================================================
-// FITUR PENCARIAN
-// =============================================================================
-
-function searchEvents(query) {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  return SORTED_EVENTS.filter(e => {
-    return e.title.toLowerCase().includes(q) ||
-           e.description.toLowerCase().includes(q) ||
-           e.date.includes(q);
-  });
-}
-
-function handleSearch(query) {
-  const searchSection = document.getElementById('searchResultsSection');
-  const resultsContainer = document.getElementById('searchResultsList');
-  const countBadge = document.getElementById('resultsCount');
-  const emptyState = document.getElementById('searchEmptyState');
-  const emptyKeyword = document.getElementById('emptyQueryKeyword');
-
-  const trimmed = query.trim();
-  if (!trimmed) {
-    if (searchSection) searchSection.hidden = true;
-    if (resultsContainer) resultsContainer.innerHTML = '';
-    return;
-  }
-
-  const results = searchEvents(trimmed);
-  if (searchSection) searchSection.hidden = false;
-  if (resultsContainer) resultsContainer.innerHTML = '';
-
-  if (results.length === 0) {
-    if (emptyState) emptyState.hidden = false;
-    if (emptyKeyword) emptyKeyword.textContent = `"${trimmed}"`;
-    if (countBadge) countBadge.textContent = '0 acara';
-  } else {
-    if (emptyState) emptyState.hidden = true;
-    if (countBadge) countBadge.textContent = `${results.length} acara ditemukan`;
-    results.forEach(event => {
-      resultsContainer.appendChild(createEventCard(event, false));
-    });
-  }
-}
-
-// =============================================================================
-// ROUTER HASH & INITIALIZATION
-// =============================================================================
-
-function routeFromHash() {
-  const hash = window.location.hash;
-  if (hash.startsWith('#event=')) {
-    const eventId = decodeURIComponent(hash.replace('#event=', ''));
-    if (eventId) {
-      renderEventDetail(eventId);
-      return;
-    }
-  } else if (hash === '#all-events') {
-    showView('all');
-    return;
-  }
-  showView('home');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // 1. Pasang navigasi tab bar
-  const navHomeBtn = document.getElementById('navHomeBtn');
-  const navAllEventsBtn = document.getElementById('navAllEventsBtn');
-  const brandHomeLink = document.getElementById('brandHomeLink');
-  const seeAllEventsLink = document.getElementById('seeAllEventsLink');
-  const backToMainBtn = document.getElementById('backToMainBtn');
-
-  if (navHomeBtn) {
-    navHomeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      navigateToHome();
-    });
-  }
-
-  if (navAllEventsBtn) {
-    navAllEventsBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      navigateToAllEvents();
-    });
-  }
-
-  if (brandHomeLink) {
-    brandHomeLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      navigateToHome();
-    });
-  }
-
-  if (seeAllEventsLink) {
-    seeAllEventsLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      navigateToAllEvents();
-    });
-  }
-
-  if (backToMainBtn) {
-    backToMainBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.history.length > 1 ? window.history.back() : navigateToHome();
-    });
-  }
-
-  // 2. Input pencarian dengan debouncing
-  const searchInput = document.getElementById('eventSearchInput');
-  const searchForm = document.getElementById('eventSearchForm');
-  const clearBtn = document.getElementById('clearSearchBtn');
 
   if (searchInput) {
-    let timer;
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(timer);
-      const val = e.target.value;
-      if (clearBtn) clearBtn.hidden = val.trim().length === 0;
-      timer = setTimeout(() => {
-        handleSearch(val);
-      }, 150);
-    });
+    searchInput.addEventListener('input', filterAlbums);
   }
 
-  if (clearBtn) {
-    clearBtn.addEventListener('click', () => {
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
       if (searchInput) {
         searchInput.value = '';
-        clearBtn.hidden = true;
-        handleSearch('');
+        filterAlbums();
         searchInput.focus();
       }
     });
   }
 
-  if (searchForm) {
-    searchForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (searchInput) handleSearch(searchInput.value);
+  searchChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (searchInput) {
+        searchInput.value = chip.dataset.search;
+        filterAlbums();
+        // Scroll halus ke bagian arsip
+        const arsipEl = document.getElementById('arsip');
+        if (arsipEl) {
+          window.scrollTo({ top: arsipEl.offsetTop - 80, behavior: 'smooth' });
+        }
+      }
+    });
+  });
+
+  // Filter Tabs Kategori (All, Frame, Original, Unclaimed)
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      filterTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentCategoryFilter = tab.dataset.filter;
+      filterAlbums();
+    });
+  });
+
+  if (resetFilterBtn) {
+    resetFilterBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      currentCategoryFilter = 'all';
+      filterTabs.forEach(t => t.classList.remove('active'));
+      const allTab = document.querySelector('[data-filter="all"]');
+      if (allTab) allTab.classList.add('active');
+      filterAlbums();
     });
   }
 
-  // 3. Listener hash router
-  window.addEventListener('popstate', routeFromHash);
+  // Footer Filter Links
+  document.querySelectorAll('[data-filter-link]').forEach(link => {
+    link.addEventListener('click', () => {
+      const cat = link.dataset.filterLink;
+      currentCategoryFilter = cat;
+      filterTabs.forEach(t => {
+        t.classList.remove('active');
+        if (t.dataset.filter === cat) t.classList.add('active');
+      });
+      filterAlbums();
+    });
+  });
 
-  // 4. Initial route load
-  routeFromHash();
-});
+  // Animasi Counter Angka di Hero
+  function animateCounter(element, target, duration = 1200) {
+    if (!element) return;
+    let start = 0;
+    const increment = target / (duration / 16);
+
+    function update() {
+      start += increment;
+      if (start < target) {
+        element.textContent = Math.floor(start);
+        requestAnimationFrame(update);
+      } else {
+        element.textContent = target;
+      }
+    }
+    update();
+  }
+
+  const totalAlbumEl = document.getElementById('totalAlbum');
+  if (totalAlbumEl) {
+    animateCounter(totalAlbumEl, SORTED_EVENTS.length);
+  }
+
+  // Initial render
+  renderRecentSection();
+  renderAllEventsSection();
+  handleScroll();
+
+})();
