@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <title>PHOTOBOOTH ARCHIVE — SMK YASBAM | Teknik Jaringan Komputer dan Telekomunikasi (TJKT)</title>
+  <meta name="description" content="Arsip softfile dokumentasi photobooth resmi kegiatan SMK YASBAM Kota Bogor — Program Keahlian Teknik Jaringan Komputer dan Telekomunikasi (TJKT).">
+  <meta name="theme-color" content="#0b1f3a">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/jpeg" href="assets/yasbam.jpg">
+
+  <!-- Google Fonts: Plus Jakarta Sans (Sangat rapi, modern, dan tajam di layar HP/Desktop) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header Navigasi -->
+  <header class="site-header" role="banner">
+    <div class="container header-container">
+      
+      <!-- Baris 1: Logo, Judul & Tombol Web Sekolah -->
+      <div class="header-top-row">
+        <a href="#" class="brand-anchor" id="brandHomeLink" aria-label="Beranda Arsip Photobooth">
+          <div class="brand-logos">
+            <img src="assets/yasbam.jpg" alt="Logo SMK Yasbam" class="logo-badge" width="38" height="38">
+            <img src="assets/tjkt.jpg" alt="Logo TJKT" class="logo-badge" width="38" height="38">
+          </div>
+          <div class="brand-text-col">
+            <span class="brand-title">PHOTOBOOTH ARCHIVE</span>
+            <span class="brand-sub">SMK YASBAM &bull; TJKT</span>
+          </div>
+        </a>
+
+        <!-- Tombol Website Resmi Sekolah yang Tenang & Rapi -->
+        <a href="https://smkyasbam.sch.id/" target="_blank" rel="noopener noreferrer" class="school-portal-btn" aria-label="Kunjungi Website Resmi SMK YASBAM (Tab baru)">
+          <span class="portal-globe" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </span>
+          <span class="portal-name">smkyasbam.sch.id</span>
+        </a>
+      </div>
+
+      <!-- Baris 2: Tab Navigasi Halaman (Nyaman disentuh di HP, menyatu di Desktop) -->
+      <div class="header-nav-row">
+        <nav class="nav-pill-group" aria-label="Navigasi Arsip">
+          <button type="button" id="navHomeBtn" class="nav-pill-btn active">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Beranda</span>
+          </button>
+          <button type="button" id="navAllEventsBtn" class="nav-pill-btn">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span>Semua Arsip Acara</span>
+          </button>
+        </nav>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 1. TAMPILAN BERANDA (Hero, Pencarian, & 3 Arsip Terbaru)                -->
+  <!-- ===================================================================== -->
+  <div id="mainView">
+    <!-- Hero Section -->
+    <section class="hero-wrapper" aria-labelledby="heroMainTitle">
+      <div class="container hero-box">
+        <span class="hero-label">Dokumentasi Softfile Resmi</span>
+        <h1 id="heroMainTitle" class="hero-heading">Mau mencari softfile foto photobooth kami?</h1>
+        <p class="hero-desc">
+          Temukan foto kegiatan Anda di SMK YASBAM. Cari langsung berdasarkan nama agenda atau telusuri seluruh arsip yang tersedia.
+        </p>
+
+        <!-- Form Pencarian Cepat -->
+        <form id="eventSearchForm" class="search-form-wrap" role="search" aria-label="Cari nama acara photobooth">
+          <div class="search-field-box">
+            <svg class="search-icon-decor" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              id="eventSearchInput" 
+              class="search-text-input" 
+              placeholder="Cari acara (Wisuda, PPDB, Expo TJKT)..."
+              autocomplete="off"
+              aria-label="Ketik nama acara photobooth"
+            >
+            <button type="button" id="clearSearchBtn" class="search-clear-btn" aria-label="Hapus pencarian" hidden>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <button type="submit" class="btn-search-trigger">
+              <span>Cari</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Konten Halaman Beranda -->
+    <main class="page-body" role="main">
+      <div class="container">
+
+        <!-- Area Hasil Pencarian (Muncul saat ada query) -->
+        <section id="searchResultsSection" class="section-group" aria-labelledby="searchHeadingTitle" hidden>
+          <div class="section-title-row">
+            <div>
+              <span class="section-subtitle-tag">Penelusuran</span>
+              <h2 id="searchHeadingTitle" class="section-headline">Hasil Pencarian</h2>
+            </div>
+            <span id="resultsCount" class="counter-badge">0 acara</span>
+          </div>
+
+          <div id="searchResultsList" class="cards-layout-grid">
+            <!-- Kartu hasil pencarian diisi oleh script.js -->
+          </div>
+
+          <div id="searchEmptyState" class="empty-notice-card" hidden>
+            <p class="empty-title">Tidak ada arsip yang cocok</p>
+            <p class="empty-subtext">Kata kunci <strong id="emptyQueryKeyword">""</strong> tidak ditemukan dalam catatan arsip.</p>
+            <p class="empty-hint">Coba kata kunci yang lebih umum seperti <em>"Wisuda"</em> atau pilih tab <strong>Semua Arsip Acara</strong>.</p>
+          </div>
+        </section>
+
+        <!-- Area Arsip Terbaru (Tepat 3 Acara Paling Baru) -->
+        <section class="section-group" aria-labelledby="recentHeadingTitle">
+          <div class="section-title-row">
+            <div>
+              <span class="section-subtitle-tag">Dokumentasi Terkini</span>
+              <h2 id="recentHeadingTitle" class="section-headline">ARSIP TERBARU</h2>
+            </div>
+            <a href="#all-events" id="seeAllEventsLink" class="section-side-link">
+              <span>Lihat Semua Arsip</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </div>
+
+          <div id="recentEventsList" class="cards-layout-grid">
+            <!-- 3 kartu acara terbaru diisi oleh script.js -->
+          </div>
+        </section>
+
+        <!-- Panduan Pengambilan Softfile Rapi & Ringkas -->
+        <section class="section-group" aria-labelledby="guideBoxTitle">
+          <div class="guide-card-box">
+            <h3 id="guideBoxTitle" class="guide-main-title">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              Alur Mengakses Softfile Photobooth
+            </h3>
+            <p class="guide-intro-text">
+              Seluruh foto dokumentasi resmi tersimpan langsung di Google Photos dalam resolusi aslinya:
+            </p>
+
+            <div class="guide-steps-flex">
+              <div class="guide-step-card">
+                <span class="step-digit-box">01</span>
+                <div>
+                  <h4 class="step-card-title">Pilih Acara</h4>
+                  <p class="step-card-body">Cari atau pilih kegiatan yang Anda hadiri dari daftar arsip kami.</p>
+                </div>
+              </div>
+              <div class="guide-step-card">
+                <span class="step-digit-box">02</span>
+                <div>
+                  <h4 class="step-card-title">Tentukan Kategori</h4>
+                  <p class="step-card-body">Tersedia kategori <strong>Frame</strong> (berbingkai), <strong>Original</strong> (asli), dan <strong>Unclaimed</strong>.</p>
+                </div>
+              </div>
+              <div class="guide-step-card">
+                <span class="step-digit-box">03</span>
+                <div>
+                  <h4 class="step-card-title">Buka Album</h4>
+                  <p class="step-card-body">Klik tombol kategori untuk membuka Google Photos di tab baru dan simpan foto Anda.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. TAMPILAN SEMUA ARSIP ACARA (Direktori Mobile-First & Filter Tahun)   -->
+  <!-- ===================================================================== -->
+  <div id="allEventsView" hidden>
+    <main class="page-body" role="main">
+      <div class="container">
+        
+        <div class="directory-intro-row">
+          <div>
+            <span class="section-subtitle-tag">Katalog Lengkap</span>
+            <h1 class="section-headline">Semua Arsip Acara</h1>
+            <p class="directory-caption">Seluruh agenda photobooth SMK YASBAM tersusun dari kegiatan terbaru.</p>
+          </div>
+          <span id="totalEventsBadge" class="counter-badge">0 Acara</span>
+        </div>
+
+        <!-- Filter Tahun Cepat (Tombol Chip Mudah Disentuh) -->
+        <div class="year-filter-wrapper" aria-label="Filter tahun kegiatan">
+          <span class="filter-caption">Tahun:</span>
+          <div id="yearFilterButtons" class="filter-chip-row">
+            <!-- Tombol filter tahun di-render script.js -->
+          </div>
+        </div>
+
+        <!-- Daftar Kartu Direktori (Sangat Rapi di Layar HP & Terstruktur di Laptop) -->
+        <div id="directoryList" class="directory-cards-container">
+          <!-- Seluruh baris direktori di-render oleh script.js -->
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 3. TAMPILAN DETAIL ACARA (Kategori Softfile Google Photos)             -->
+  <!-- ===================================================================== -->
+  <div id="detailView" hidden>
+    <main class="page-body" role="main">
+      <div class="container detail-view-box">
+
+        <button type="button" id="backToMainBtn" class="btn-back-trigger">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span>Kembali ke Halaman Sebelumnya</span>
+        </button>
+
+        <article class="detail-main-card">
+          <div class="detail-date-badge-box">
+            <span class="meta-date-chip">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <time id="detailDate" datetime="">-</time>
+            </span>
+          </div>
+
+          <h2 id="detailTitle" class="detail-heading-title">-</h2>
+          <p id="detailDesc" class="detail-body-desc">-</p>
+        </article>
+
+        <!-- Pilihan Kategori Album Google Photos -->
+        <section class="section-group" aria-labelledby="albumHeadingLabel">
+          <div class="section-title-row">
+            <div>
+              <span class="section-subtitle-tag">Album Softfile</span>
+              <h3 id="albumHeadingLabel" class="section-headline">Pilih Kategori Foto</h3>
+            </div>
+          </div>
+
+          <div id="detailAlbumsList" class="album-grid-layout">
+            <!-- Kartu Frame, Original, Unclaimed diisi script.js -->
+          </div>
+
+          <div id="emptyAlbumsNotice" class="empty-notice-card" hidden>
+            <p class="empty-title">Album Belum Tersedia</p>
+            <p class="empty-subtext">Tautan album untuk kegiatan ini sedang dipersiapkan oleh tim dokumentasi.</p>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- FOOTER: Bersih, Rapi, Bernuansa Institusi                             -->
+  <!-- ===================================================================== -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-content-wrap">
+      <div class="footer-brand-pane">
+        <div class="footer-head-title">PHOTOBOOTH ARCHIVE</div>
+        <div class="footer-dept-name">SMK YASBAM &bull; TEKNIK JARINGAN KOMPUTER DAN TELEKOMUNIKASI</div>
+        <p class="footer-paragraph">
+          Layanan arsip dokumentasi softfile kegiatan resmi sekolah di bawah naungan Yayasan Baitul Mukaromah (YASBAM) Kota Bogor.
+        </p>
+      </div>
+
+      <div class="footer-meta-pane">
+        <div>
+          <span class="footer-section-tag">Tautan</span>
+          <ul class="footer-link-list">
+            <li><a href="https://smkyasbam.sch.id/" target="_blank" rel="noopener noreferrer">Website Sekolah</a></li>
+            <li><a href="https://smkyasbam.sch.id/" target="_blank" rel="noopener noreferrer">Informasi PPDB</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <span class="footer-section-tag">Sekretariat</span>
+          <p class="footer-address-text">
+            Jl. Raya H.E. Sukma Bakomsari No. 91, Harjasari, Bogor Selatan, Kota Bogor 16138
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom-bar">
+      <div class="container">
+        <p class="footer-bottom-text">
+          &copy; SMK YASBAM — TJKT. Arsip softfile tersimpan di Google Photos.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
