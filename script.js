@@ -32,17 +32,6 @@ const EVENTS = [
       original: 'https://photos.app.goo.gl/zdg938AuwxseLjvC7',
       unclaimed: 'https://photos.app.goo.gl/f4MMyhuKi7GtzYB6A'
     }
-  },
-  {
-    id: 'perpisahan-yasbam-2026',
-    title: 'Perpisahan Siswa SMK YASBAM Tahun Pelajaran 2025/2026',
-    date: '2026-05-16',
-    description: 'Dokumentasi softfile resmi photobooth pelepasan dan perpisahan siswa-siswi SMK YASBAM Tahun Pelajaran 2025/2026.',
-    albums: {
-      frame: 'https://photos.app.goo.gl/FCh7VjUT4iimDLWv5',
-      original: 'https://photos.app.goo.gl/tF99rKhdWnQ6izgK9',
-      unclaimed: '' // Kosongkan atau hapus baris ini, tombol otomatis hilang
-    }
   }
 ];
 
